@@ -7,4 +7,6 @@ pub(crate) enum Command {
     Help,
     #[command(description = "поиск слова/кандзи")]
     Search(String),
+    #[command(description = "начать игру в ширитори")]
+    Shiritory,
 }

@@ -2,17 +2,29 @@ pub(self) const SEARCH_URL: &str = "https://jisho.org/api/v1/search/words/?keywo
 
 pub mod data;
 
-use self::data::{JapaneseMeaning, JishoReply};
+use teloxide::{requests::Requester, types::Message, Bot};
 
-pub(crate) async fn search_word(request: String) -> Result<String, Box<dyn std::error::Error>> {
-    let reply = reqwest::get(format!("{SEARCH_URL}{request}"))
+use crate::HandlerResult;
+
+use self::data::JishoReply;
+
+pub(crate) async fn search_word(bot: Bot, request: Message) -> HandlerResult {
+    let word_to_search = request.text().unwrap();
+    let reply = reqwest::get(format!("{SEARCH_URL}{word_to_search}"))
         .await?
         .json::<JishoReply>()
         .await?;
     match reply.data.len() {
-        0 => Ok(String::from("По вашему запросу ничего не найдено :(")),
-        _ => Ok(get_formatted_reply(reply)),
+        0 => {
+            bot.send_message(request.chat.id, "По вашему запросу ничего не найдено :(")
+                .await?;
+        }
+        _ => {
+            bot.send_message(request.chat.id, get_formatted_reply(reply))
+                .await?;
+        }
     }
+    Ok(())
 }
 
 fn get_formatted_reply(reply: JishoReply) -> String {

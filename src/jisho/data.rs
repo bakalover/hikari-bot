@@ -1,4 +1,3 @@
-use core::fmt;
 use std::fmt::Display;
 
 use serde::Deserialize;
