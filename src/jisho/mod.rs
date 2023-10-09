@@ -14,12 +14,12 @@ pub(crate) async fn search_word(bot: Bot, request: Message) -> HandlerResult {
         .await?
         .json::<JishoReply>()
         .await?;
-    match reply.data.len() {
-        0 => {
+    match reply.data {
+        None => {
             bot.send_message(request.chat.id, "По вашему запросу ничего не найдено :(")
                 .await?;
         }
-        _ => {
+        Some(_) => {
             bot.send_message(request.chat.id, get_formatted_reply(reply))
                 .await?;
         }
@@ -35,7 +35,7 @@ fn get_formatted_reply(reply: JishoReply) -> String {
 }
 
 fn acquire_jap(reply: &JishoReply) -> String {
-    let jps = &reply.data[0].japanese;
+    let jps = &reply.data.unwrap().japanese;
     match jps.len() {
         0 => String::from("Отсутствуют"),
         _ => jps
@@ -47,15 +47,15 @@ fn acquire_jap(reply: &JishoReply) -> String {
 }
 
 fn get_jlpt(reply: &JishoReply) -> String {
-    let levels = &reply.data[0].jlpt;
-    match levels.len() {
-        0 => String::from("Отсутствует"),
-        _ => levels.join("\n"),
+    let levels = &reply.data.unwrap().jlpt;
+    match levels {
+        None => String::from("Отсутствует"),
+        Some(jlpt_level) => jlpt_level.clone(),
     }
 }
 
 fn get_meanings(reply: &JishoReply) -> String {
-    let meanings = &reply.data[0].senses;
+    let meanings = &reply.data.unwrap().senses;
     match meanings.len() {
         0 => String::from("Отсутствуют"),
         _ => meanings

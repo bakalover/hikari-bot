@@ -4,13 +4,13 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub(super) struct JishoReply {
-    pub(super) data: Vec<Entry>,
+    pub(super) data: Option<Entry>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(super) struct Entry {
     pub(super) japanese: Vec<JapaneseMeaning>,
-    pub(super) jlpt: Vec<String>,
+    pub(super) jlpt: Option<String>,
     pub(super) senses: Vec<Sense>,
 }
 
