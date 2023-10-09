@@ -3,12 +3,12 @@ mod info;
 mod kana;
 
 use crate::HandlerResult;
-use std::fmt::format;
 use teloxide::{
-    requests::{Request, Requester},
+    requests::Requester,
     types::{ChatId, Message},
     Bot,
 };
+use tokio_postgres::Client;
 
 enum State {
     Continue,
@@ -26,9 +26,8 @@ async fn firs_bot_round(bot: &Bot, chat_id: ChatId) -> HandlerResult {
     Ok(())
 }
 
-pub(crate) async fn game(bot: Bot, start_message: Message) -> HandlerResult {
+pub(crate) async fn game(bot: Bot, start_message: Message, client: Client) -> HandlerResult {
     let chat_id = start_message.chat.id;
-
     info::say_hi(&bot, chat_id).await?;
     firs_bot_round(&bot, chat_id).await?;
 
@@ -62,8 +61,7 @@ async fn play_round(bot: &Bot, chat_id: ChatId) -> RoundResult {
         return Ok(State::Continue);
     }
 
-    let first_word = format!("Стартовое слово: {word} \n");
-    bot.send_message(chat_id, first_word).await?;
-    info::send_next_word_info(&bot, chat_id, word).await?;
+    // bot.send_message(chat_id, word).await?;
+    // info::send_next_word_info(&bot, chat_id, word).await?;
     Ok(State::Continue)
 }
