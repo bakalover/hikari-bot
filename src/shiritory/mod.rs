@@ -1,35 +1,69 @@
+mod check;
+mod info;
+mod kana;
+
+use crate::HandlerResult;
+use std::fmt::format;
 use teloxide::{
     requests::{Request, Requester},
     types::{ChatId, Message},
     Bot,
 };
 
-use crate::HandlerResult;
+enum State {
+    Continue,
+    Stop,
+}
 
-async fn say_hi(bot: &Bot, chat_id: ChatId) -> HandlerResult {
-    let message = "Да начнётся игра в ширитори! \n Для остановки напишите \"shiritory stop\" в чат";
-    bot.send_message(chat_id, message).send().await?;
+type RoundResult = Result<State, Box<dyn std::error::Error + Send + Sync>>;
+
+async fn firs_bot_round(bot: &Bot, chat_id: ChatId) -> HandlerResult {
+    // Get random word and insert into into db
+    let word = "雲"; // Special display option with meaning and hiragana reading
+    let first_word = format!("Стартовое слово: {word} \n");
+    bot.send_message(chat_id, first_word).await?;
+    info::send_next_word_info(&bot, chat_id, word).await?;
     Ok(())
 }
 
-fn is_need_to_stop(msg: &str) -> bool {
-    return msg == "shiritory stop";
-}
+pub(crate) async fn game(bot: Bot, start_message: Message) -> HandlerResult {
+    let chat_id = start_message.chat.id;
 
-pub(crate) async fn start(bot: Bot, msg: Message) -> HandlerResult {
-    say_hi(&bot, msg.chat.id).await?;
-    //Вставляем первое слово в бд
-    
+    info::say_hi(&bot, chat_id).await?;
+    firs_bot_round(&bot, chat_id).await?;
+
     loop {
-        play_round(&bot, &msg);
+        match play_round(&bot, chat_id).await? {
+            State::Continue => (),
+            State::Stop => {
+                info::send_statistics(&bot, chat_id).await?;
+                break;
+            }
+        };
     }
 
     Ok(())
 }
 
-fn play_round(bot: &Bot, msg: &Message) {
-    // Выбираем последнее слово
-    // Пишем, чтобы вводили слово начинающееся с концовки последнего из бд
-    // В хэндлере проверяем сигнатуру игрока и при новом ответе говорим ему приветственное
-    // teloxide::repl(bot, handler);
+async fn play_round(bot: &Bot, chat_id: ChatId) -> RoundResult {
+    let word = todo!(); // Obtain last word
+
+    if check::check_for_stop(word) {
+        return Ok(State::Stop);
+    }
+
+    if check::check_n_ending(word) {
+        info::say_about_n_ending(&bot, chat_id).await?;
+        return Ok(State::Stop);
+    }
+
+    if check::check_for_twice(word) {
+        info::say_about_twice(&bot, chat_id).await?;
+        return Ok(State::Continue);
+    }
+
+    let first_word = format!("Стартовое слово: {word} \n");
+    bot.send_message(chat_id, first_word).await?;
+    info::send_next_word_info(&bot, chat_id, word).await?;
+    Ok(State::Continue)
 }

@@ -26,7 +26,7 @@ async fn main() {
 //     let command_handler = teloxide::filter_command::<Command, _>()
 //         .branch(case![Command::Help].endpoint(help))
 //         .branch(case![Command::Search(req)].endpoint(jisho::search_word))
-//         .branch(case![Command::Shiritory].endpoint(shiritory::start));
+//         .branch(case![Command::Shiritory].endpoint(shiritory::game));
 
 //     // teloxide::dispatching::dialogue::enter()
 //     //     .branch(command_handler)
