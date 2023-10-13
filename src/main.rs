@@ -2,6 +2,8 @@ pub mod commands;
 pub mod jisho;
 pub mod shiritory;
 
+use std::sync::Arc;
+
 use commands::Command;
 use teloxide::{dispatching::UpdateHandler, prelude::*, utils::command::BotCommands};
 use tokio_postgres::{Client, NoTls};
@@ -17,8 +19,7 @@ async fn main() {
         .unwrap();
 
     let bot = Bot::from_env();
-    Dispatcher::builder(bot, command_handler(client))
-        .dependencies(dptree::deps![client])
+    Dispatcher::builder(bot, command_handler(Arc::new(client)))
         .enable_ctrlc_handler()
         .build()
         .dispatch()
@@ -26,14 +27,21 @@ async fn main() {
 }
 
 fn command_handler(
-    client: Client,
+    client: Arc<Client>,
 ) -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'static>> {
     use dptree::case;
-
     teloxide::filter_command::<Command, _>()
         .branch(case![Command::Help].endpoint(help))
         .branch(case![Command::Search(req)].endpoint(jisho::search_word))
-        .branch(case![Command::Shiritory].endpoint(|bot, msg| shiritory::game(bot.clone(), msg, client)))
+        .branch(
+            case![Command::Shiritory].endpoint(move |bot: Bot, start_message: Message| {
+                let client = Arc::clone(&client);
+                async move {
+                    shiritory::game(bot, start_message, client).await?;
+                    Ok(())
+                }
+            }),
+        )
 }
 
 async fn help(bot: Bot, msg: Message) -> HandlerResult {

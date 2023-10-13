@@ -8,19 +8,21 @@ use crate::HandlerResult;
 
 use self::data::JishoReply;
 
-pub(crate) async fn search_word(bot: Bot, request: Message) -> HandlerResult {
-    let word_to_search = request.text().unwrap();
+pub(crate) async fn search_word(bot: Bot, text: String, request: Message) -> HandlerResult {
+    let word_to_search = text;
+    let chat_id = request.chat.id;
     let reply = reqwest::get(format!("{SEARCH_URL}{word_to_search}"))
         .await?
         .json::<JishoReply>()
         .await?;
+
     match reply.data {
         None => {
-            bot.send_message(request.chat.id, "По вашему запросу ничего не найдено :(")
+            bot.send_message(chat_id, "По вашему запросу ничего не найдено :(")
                 .await?;
         }
         Some(_) => {
-            bot.send_message(request.chat.id, get_formatted_reply(reply))
+            bot.send_message(chat_id, get_formatted_reply(reply))
                 .await?;
         }
     }

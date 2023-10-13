@@ -2,6 +2,8 @@ mod check;
 mod info;
 mod kana;
 
+use std::sync::Arc;
+
 use crate::HandlerResult;
 use teloxide::{
     requests::Requester,
@@ -17,19 +19,19 @@ enum State {
 
 type RoundResult = Result<State, Box<dyn std::error::Error + Send + Sync>>;
 
-async fn firs_bot_round(bot: &Bot, chat_id: ChatId) -> HandlerResult {
-    // Get random word and insert into into db
-    let word = "雲"; // Special display option with meaning and hiragana reading
+async fn firs_bot_round(bot: &Bot, chat_id: ChatId, client: Arc<Client>) -> HandlerResult {
+    let word = "雲";
+    client.query("INSERT INTO words VALUES ('雲')", &[]).await?;
     let first_word = format!("Стартовое слово: {word} \n");
     bot.send_message(chat_id, first_word).await?;
     info::send_next_word_info(&bot, chat_id, word).await?;
     Ok(())
 }
 
-pub(crate) async fn game(bot: Bot, start_message: Message, client: Client) -> HandlerResult {
+pub(crate) async fn game(bot: Bot, start_message: Message, client: Arc<Client>) -> HandlerResult {
     let chat_id = start_message.chat.id;
     info::say_hi(&bot, chat_id).await?;
-    firs_bot_round(&bot, chat_id).await?;
+    firs_bot_round(&bot, chat_id, client).await?;
 
     loop {
         match play_round(&bot, chat_id).await? {
