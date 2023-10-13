@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use tokio_postgres::Client;
 
 pub(crate) async fn get_last(client: &Client) -> String {
@@ -18,5 +16,8 @@ pub(crate) async fn add_word(word: &str, client: &Client) {
 }
 
 pub(crate) async fn create_word_db(name: &str, client: &Client) {
-    client.query("create table $1 (id SERIAL, value text)", &[&name]).await.unwrap();
+    client
+        .query("create table $1 (id SERIAL, value text)", &[&name])
+        .await
+        .unwrap();
 }

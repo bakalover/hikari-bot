@@ -2,11 +2,8 @@ pub mod commands;
 pub mod jisho;
 pub mod shiritory;
 
-use std::sync::Arc;
-
 use commands::Command;
 use teloxide::{dispatching::UpdateHandler, prelude::*, utils::command::BotCommands};
-use tokio_postgres::{Client, NoTls};
 
 type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
 

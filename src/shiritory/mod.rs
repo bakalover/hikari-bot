@@ -3,8 +3,6 @@ mod db;
 mod info;
 mod kana;
 
-use std::sync::Arc;
-
 use crate::HandlerResult;
 use teloxide::{
     requests::Requester,
