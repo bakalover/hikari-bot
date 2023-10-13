@@ -29,7 +29,7 @@ pub(super) async fn say_about_twice(bot: &Bot, chat_id: ChatId) -> HandlerResult
 pub(super) async fn send_next_word_info(
     bot: &Bot,
     chat_id: ChatId,
-    previous_word: &str,
+    previous_word: &str, // Already validated
 ) -> HandlerResult {
     let start_kana = kana::get_start_kana(previous_word);
     let next = format!("Следующее слово начинается с {start_kana} \n");

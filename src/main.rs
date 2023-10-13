@@ -14,34 +14,21 @@ type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
 async fn main() {
     pretty_env_logger::init();
     log::info!("Starting bot...");
-    let (client, _) = tokio_postgres::connect("host=localhost user=bakalover", NoTls)
-        .await
-        .unwrap();
 
     let bot = Bot::from_env();
-    Dispatcher::builder(bot, command_handler(Arc::new(client)))
+    Dispatcher::builder(bot, command_handler())
         .enable_ctrlc_handler()
         .build()
         .dispatch()
         .await;
 }
 
-fn command_handler(
-    client: Arc<Client>,
-) -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'static>> {
+fn command_handler() -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'static>> {
     use dptree::case;
     teloxide::filter_command::<Command, _>()
         .branch(case![Command::Help].endpoint(help))
         .branch(case![Command::Search(req)].endpoint(jisho::search_word))
-        .branch(
-            case![Command::Shiritory].endpoint(move |bot: Bot, start_message: Message| {
-                let client = Arc::clone(&client);
-                async move {
-                    shiritory::game(bot, start_message, client).await?;
-                    Ok(())
-                }
-            }),
-        )
+        .branch(case![Command::Shiritory].endpoint(shiritory::game))
 }
 
 async fn help(bot: Bot, msg: Message) -> HandlerResult {

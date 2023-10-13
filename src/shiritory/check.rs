@@ -1,9 +1,18 @@
+static SMALL_VOWEL: &str = "ゃャょョゅュぁァぃィぅゥぇェぉォ";
+static N_ENDING: &str = "ん";
+
+fn last(word: &str) -> &str {
+    // Kana contains 3 bytes
+    assert!(word.len() >= 3);
+    word.get(word.len() - 3..word.len() - 1).unwrap()
+}
+
 pub(super) fn check_small_kana(word: &str) -> bool {
-    todo!()
+    SMALL_VOWEL.contains(last(word))
 }
 
 pub(super) fn check_n_ending(word: &str) -> bool {
-    todo!()
+    last(word) == N_ENDING
 }
 
 pub(super) fn check_for_stop(word: &str) -> bool {
