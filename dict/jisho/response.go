@@ -79,7 +79,6 @@ func (jsr *JishoResponse) RelevantWord() (string, error) {
 }
 
 func (jsr *JishoResponse) RelevantSpeechParts() ([]string, error) {
-
 	if len(jsr.Data) < 1 {
 		return nil, errors.New("нельзя определить часть речи =(")
 	}

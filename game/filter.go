@@ -127,7 +127,7 @@ func IsDoubled(ctx util.GameContext, word string) bool {
 
 func ContainsNoun(speechParts []string, dict dict.Dictionary) bool {
 	check := false
-	for _, s := range speechParts{
+	for _, s := range speechParts {
 		check = check || (s == dict.NounRepr())
 	}
 	return check
