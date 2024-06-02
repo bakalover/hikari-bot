@@ -6,7 +6,7 @@ type Response interface {
 	RelevantWord() (string, error)
 	Kanas() []string
 	Words() []string
-	RelevantSpeechPart() (string, error)
+	RelevantSpeechParts() ([]string, error)
 	RelevantDefinition() (string, error)
 }
 

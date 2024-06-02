@@ -126,7 +126,7 @@ func HandleNextWord(ctx util.GameContext, dict *jisho.JishoDict) {
 			return
 		}
 
-		nextSpeechPart, err := nextWordResponse.RelevantSpeechPart()
+		nextSpeechParts, err := nextWordResponse.RelevantSpeechParts()
 
 		if err != nil {
 			log.Println(err)
@@ -163,7 +163,7 @@ func HandleNextWord(ctx util.GameContext, dict *jisho.JishoDict) {
 			return
 		}
 
-		if !IsNoun(nextSpeechPart) {
+		if !IsNoun(nextSpeechParts) {
 			util.Reply(ctx.TeleCtx, "Слово не является существительным!")
 			return
 		}

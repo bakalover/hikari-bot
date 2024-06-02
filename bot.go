@@ -2,6 +2,7 @@ package main
 
 import (
 	"bakalover/hikari-bot/dict/jisho"
+	"bakalover/hikari-bot/dict/jmdict"
 	"bakalover/hikari-bot/game"
 	"bakalover/hikari-bot/util"
 	"fmt"
@@ -90,7 +91,12 @@ func main() {
 		log.Fatalf("Couldn't establish connection to Database!\n%v", err)
 	}
 
+	// initializations
 	dict := &jisho.JishoDict{}
+	err = jmdict.InitJMdictTable(dbConn)
+	if err != nil {
+		log.Fatalf("Couldn't initialize bot api!\n%v", err)
+	}
 
 	bot.Handle("/help", func(c tele.Context) error {
 		util.Reply(c, HelpInfo)
