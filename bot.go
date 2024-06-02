@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bakalover/hikari-bot/dict"
 	"bakalover/hikari-bot/dict/jisho"
-	"bakalover/hikari-bot/dict/jmdict"
 	"bakalover/hikari-bot/game"
 	"bakalover/hikari-bot/util"
 	"fmt"
@@ -91,11 +91,10 @@ func main() {
 		log.Fatalf("Couldn't establish connection to Database!\n%v", err)
 	}
 
-	// initializations
-	dict := &jisho.JishoDict{}
-	err = jmdict.InitJMdictTable(dbConn)
-	if err != nil {
-		log.Fatalf("Couldn't initialize bot api!\n%v", err)
+	// Info sources
+	dicts := []dict.Dictionary{
+		jisho.NewJisho(), // DO NOT REORDER
+		// Here goes JMDict and other
 	}
 
 	bot.Handle("/help", func(c tele.Context) error {
@@ -124,7 +123,7 @@ func main() {
 			return nil
 		}
 		if game.Thread() == c.Message().ThreadID {
-			game.HandleNextWord(util.GameContext{DbConn: dbConn, TeleCtx: c}, dict)
+			game.HandleNextWord(util.GameContext{DbConn: dbConn, TeleCtx: c}, dicts)
 		}
 		return nil
 	})

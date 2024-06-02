@@ -12,4 +12,6 @@ type Response interface {
 
 type Dictionary interface {
 	Search(key string) (Response, error)
+	NounRepr() string
+	Repr() string
 }

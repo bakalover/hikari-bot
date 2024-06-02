@@ -125,13 +125,12 @@ func IsDoubled(ctx util.GameContext, word string) bool {
 	return dao.CheckWordExistence(ctx.DbConn, word)
 }
 
-func IsNoun(words []string) bool {
-	for _, i := range words {
-		if i == Noun {
-			return true
-		}
+func ContainsNoun(speechParts []string, dict dict.Dictionary) bool {
+	check := false
+	for _, s := range speechParts {
+		check = check || (s == dict.NounRepr())
 	}
-	return false
+	return check
 }
 
 func HasEntries(r dict.Response) bool {
