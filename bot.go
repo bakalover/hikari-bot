@@ -3,6 +3,7 @@ package main
 import (
 	"bakalover/hikari-bot/dict"
 	"bakalover/hikari-bot/dict/jisho"
+	yomitanru "bakalover/hikari-bot/dict/yomitan_ru"
 	"bakalover/hikari-bot/game"
 	"bakalover/hikari-bot/util"
 	"fmt"
@@ -71,7 +72,7 @@ func main() {
 	bot, err := tele.NewBot(tele.Settings{
 		Token:       os.Getenv("HIKARI_BOT_TOKEN"),
 		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
-		Synchronous: true, 
+		Synchronous: true,
 	})
 
 	if err != nil {
@@ -94,6 +95,7 @@ func main() {
 	// Info sources
 	dicts := []dict.Dictionary{
 		jisho.NewJisho(), // DO NOT REORDER
+		yomitanru.NewYomitan(dbConn),
 		// Here goes JMDict and other
 	}
 
