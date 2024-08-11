@@ -2,4 +2,4 @@ data
 .env
 target/
 *.lock
-
+.vscode/
