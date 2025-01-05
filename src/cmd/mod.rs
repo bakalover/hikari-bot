@@ -1,48 +1,78 @@
+use help::help;
+use search::search;
 use teloxide::{prelude::*, utils::command::BotCommands};
 
+use crate::search::{jisho::Jisho, jmdict::JMDict};
+
+mod help;
+mod search;
+
 #[derive(BotCommands, Clone)]
-#[command(
-    rename_rule = "lowercase",
-    description = "These commands are supported:"
-)]
-pub(crate) enum Command {
-    #[command(description = "help <3")]
+#[command(rename_rule = "lowercase", description = "Команды:")]
+pub(crate) enum MainCmd {
+    #[command(description = "справка по командам")]
     Help,
 
-    #[command(description = "search via")]
-    Search(String),
+    #[command(description = "справка по командам ширитори")]
+    Shiritory_Help,
+
+    #[command(description = "справка по командам админов")]
+    Admin_Help,
+
+    #[command(description = "\"/jisho <слово/кандзи>\" [поиск Jisho | EN]")]
+    Jisho(String),
+
+    #[command(description = "\"/jmdict <слово/кандзи>\" [поиск JMDict | RU]")]
+    JMDict(String),
+
+    #[command(description = "подтвердить участие в ближайшей встрече")]
+    Apply_Meeting,
+
+    #[command(description = "отказаться от участия в ближайшей встрече")]
+    Discard_Meeting,
+
+    #[command(description = "слово дня")]
+    Daily_Word,
 }
 
-pub(crate) async fn router(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
-    match cmd {
-        Command::Help => {
-            bot.send_message(msg.chat.id, Command::descriptions().to_string())
-                .message_thread_id(msg.thread_id.unwrap())
-                .await?
-        }
+#[derive(BotCommands, Clone)]
+#[command(rename_rule = "lowercase")]
+pub(crate) enum AdminCmd {
+    #[command(description = "опубликовать пост")]
+    Post,
 
-        Command::Search(query) => {
-            let reply = reqwest::get(format!(
-                "https://jisho.org/api/v1/search/words?keyword={}",
-                query
-            ))
-            .await
-            .unwrap()
-            .text()
-            .await
-            .unwrap();
+    #[command(description = "настройки постов")]
+    Configure_Post,
+}
 
-            let truncated_message = if reply.len() > 4096 {
-                &reply[..4096]
-            } else {
-                &reply
-            };
+#[derive(BotCommands, Clone)] // Bugged unsafe inside macros
+#[command(rename_rule = "lowercase")]
+pub(crate) enum ShiritoryCmd {
+    #[command(description = "начать игру в ширитори")]
+    Shiritory(String), // thread-pinned FSM + In-memory state
+}
 
-            bot.send_message(msg.chat.id, truncated_message)
-                .message_thread_id(msg.thread_id.unwrap())
-                .await?
-        }
-    };
-
+async fn reply_text<T: Into<String>>(bot: Bot, msg: Message, text: T) -> ResponseResult<()> {
+    let send = bot.send_message(msg.chat.id, text);
+    if msg.thread_id.is_some() {
+        // subchat
+        send.message_thread_id(msg.thread_id.unwrap()).await?;
+    } else {
+        // single thread group
+        send.await?;
+    }
     Ok(())
+}
+
+pub(crate) async fn router(bot: Bot, msg: Message, cmd: MainCmd) -> ResponseResult<()> {
+    match cmd {
+        MainCmd::Help => help::<MainCmd>(bot, msg).await,
+        MainCmd::Shiritory_Help => help::<ShiritoryCmd>(bot, msg).await,
+        MainCmd::Admin_Help => help::<AdminCmd>(bot, msg).await,
+
+        MainCmd::Jisho(query) => search::<Jisho>(bot, msg, query.as_str()).await,
+        MainCmd::JMDict(query) => search::<JMDict>(bot, msg, query.as_str()).await,
+
+        _ => todo!(),
+    }
 }
